@@ -1,0 +1,8 @@
+# virtual enviroment folders
+bin/
+lib/
+share/
+env/
+
+*.cfg
+*.pyc
