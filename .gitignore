@@ -3,6 +3,6 @@ bin/
 lib/
 share/
 env/
+data/
 
-*.cfg
 *.pyc
