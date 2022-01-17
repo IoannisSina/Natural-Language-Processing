@@ -11,7 +11,7 @@ def clean_html(html_file):
     Keep only the text from the html file. Keep all tex in <p> tags.
     """
 
-    return ''.join(html_file.css('div.article-body p ::text').getall())
+    return ''.join(html_file.css("div.wysiwyg--all-content p ::text").getall())
 
 def create_folder(path):
 
@@ -26,34 +26,35 @@ def create_folder(path):
             if e.errno != errno.EEXIST:
                 raise
 
-class FoxNewsSpider(scrapy.Spider):
+class AljazeeraSpider(scrapy.Spider):
 
     """
-    Spider for scraping Fox News.
+    Spider for scraping  Al Jazeera.
     """
 
-    name = "foxnews"
+    name = "aljazeera"
     cleaned_articles = []  # Tuples of (article_title, article_url, article_text) to save them in database
     start_urls = [
-        'https://www.foxnews.com/',
+        'https://www.aljazeera.com/',
     ]
 
     def parse(self, response):
 
         """
         WEB SCRAPING SYSTEM.
-        Get all articles from https://www.foxnews.com/ homepage and parse them.
+        Get all articles from https://www.aljazeera.com/ homepage and parse them.
         """
 
         article_counter = 1
-        articles_links = response.css('h2.title-color-default a')
+        domain = 'https://www.aljazeera.com'
+        articles_links = response.css("a.u-clickable-card__link")
 
         for article_link in articles_links:
-            article_title = article_link.css('::text').get()
-            article_url = article_link.css('::attr(href)').get()
+            article_title = article_link.css('span::text').get()
+            article_url = domain + article_link.css('::attr(href)').get()
 
-            # If the article is not a video, scrape it
-            if "video" not in article_url:
+            # If the article is not a gallery, scrape it
+            if "gallery" not in article_url:
                 yield scrapy.Request(article_url, callback=self.parse_article, meta={'article_title': article_title, 'article_url': article_url, 'article_counter': article_counter})
                 article_counter += 1
     
@@ -68,7 +69,7 @@ class FoxNewsSpider(scrapy.Spider):
         count = respone.meta.get('article_counter')  # Count to keep track of the number of articles scraped
 
         # Create folder if it doesn't exist and save the html file. Works for both Windows and Linux
-        filename = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), "data", "html", "foxnews", "")
+        filename = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), "data", "html", "aljazeera", "")
         create_folder(filename)  # Create folder if it doesn't exist
 
         # Save the html file
@@ -91,4 +92,4 @@ class FoxNewsSpider(scrapy.Spider):
         db = sqlite3.connect(os.path.join(filename, "db.sqlite3"))  # Establish connection to database
 
         df = pd.DataFrame(self.cleaned_articles, columns=['title', 'url', 'content'])  # Create dataframe of cleaned articles
-        df.to_sql('foxnews', db, if_exists='replace', index=False)  # Insert dataframe to database
+        df.to_sql('aljazeera', db, if_exists='replace', index=False)  # Insert dataframe to database
