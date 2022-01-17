@@ -11,7 +11,7 @@ def clean_html(html_file):
     Keep only the text from the html file. Keep all tex in <p> tags.
     """
 
-    return ''.join(html_file.css('div.article-body p ::text').getall())
+    return ' '.join(html_file.css('div.article-body p ::text').getall())
 
 def create_folder(path):
 
@@ -54,7 +54,7 @@ class FoxNewsSpider(scrapy.Spider):
 
             # If the article is not a video, scrape it
             if "video" not in article_url:
-                yield scrapy.Request(article_url, callback=self.parse_article, meta={'article_title': article_title, 'article_url': article_url, 'article_counter': article_counter})
+                yield scrapy.Request(article_url, callback=self.parse_article, meta={'article_title': article_title, 'article_counter': article_counter})
                 article_counter += 1
     
     def parse_article(self, respone):
@@ -63,8 +63,8 @@ class FoxNewsSpider(scrapy.Spider):
         Save the article's html and append tuple of (article_title, article_url, article_text) to self.cleaned_articles.
         """
         
-        title = respone.meta.get('article_title') #  Title of the article
-        url = respone.meta.get('article_url')  # Url of the article
+        title = respone.meta.get('article_title')  # Title of the article
+        url = respone.url  # Url of the article
         count = respone.meta.get('article_counter')  # Count to keep track of the number of articles scraped
 
         # Create folder if it doesn't exist and save the html file. Works for both Windows and Linux
@@ -75,8 +75,10 @@ class FoxNewsSpider(scrapy.Spider):
         with open(os.path.join(filename, f"{count}.html"), "wb") as f:
             f.write(respone.body)
        
-        # Append tuple of (article_title, article_url, article_text) to list of cleaned articles
-        self.cleaned_articles.append((title, url, clean_html(respone)))
+        # Append tuple of (article_title, article_url, article_text) to list of cleaned articles only if title and content are not empty
+        content = clean_html(respone)
+        if title and content:
+            self.cleaned_articles.append((title, url, content))
 
     def closed(self, reason):
 
@@ -91,4 +93,4 @@ class FoxNewsSpider(scrapy.Spider):
         db = sqlite3.connect(os.path.join(filename, "db.sqlite3"))  # Establish connection to database
 
         df = pd.DataFrame(self.cleaned_articles, columns=['title', 'url', 'content'])  # Create dataframe of cleaned articles
-        df.to_sql('foxnews', db, if_exists='replace', index=False)  # Insert dataframe to database
+        df.to_sql('foxnews', db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists

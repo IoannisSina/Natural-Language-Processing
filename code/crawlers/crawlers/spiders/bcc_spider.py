@@ -11,7 +11,8 @@ def clean_html(html_file):
     Keep only the text from the html file. Keep all tex in <p> tags.
     """
 
-    return ' '.join(html_file.css("div.wysiwyg--all-content p ::text").getall())
+    clean_content = ' '.join(html_file.css('div.article__body-content p ::text').getall())
+    return clean_content if clean_content != "" else ' '.join(html_file.css('article p ::text').getall())
 
 def create_folder(path):
 
@@ -26,36 +27,33 @@ def create_folder(path):
             if e.errno != errno.EEXIST:
                 raise
 
-class AljazeeraSpider(scrapy.Spider):
+class BccSpider(scrapy.Spider):
 
     """
-    Spider for scraping Al Jazeera.
+    Spider for scraping BCC.
     """
 
-    name = "aljazeera"
+    name = "bcc"
     cleaned_articles = []  # Tuples of (article_title, article_url, article_text) to save them in database
     start_urls = [
-        'https://www.aljazeera.com/',
+        'https://www.bbc.com/news',
     ]
 
     def parse(self, response):
 
         """
         WEB SCRAPING SYSTEM.
-        Get all articles from https://www.aljazeera.com/ homepage and parse them.
+        Get all articles from https://www.bbc.com/news homepage and parse them.
         """
 
         article_counter = 1
-        articles_links = response.css("a.u-clickable-card__link")
+        articles_links = response.css('a.gs-c-promo-heading')
 
         for article_link in articles_links:
-            article_title = article_link.css('span::text').get()
+            article_title = article_link.css('h3::text').get()
             article_url = article_link.css('::attr(href)').get()
-
-            # If the article is not a gallery, scrape it
-            if "gallery" not in article_url:
-                yield response.follow(article_url, callback=self.parse_article, meta={'article_title': article_title, 'article_counter': article_counter})
-                article_counter += 1
+            yield response.follow(article_url, callback=self.parse_article, meta={'article_title': article_title, 'article_url': article_url, 'article_counter': article_counter})
+            article_counter += 1
     
     def parse_article(self, respone):
 
@@ -67,18 +65,19 @@ class AljazeeraSpider(scrapy.Spider):
         url = respone.url  # Url of the article
         count = respone.meta.get('article_counter')  # Count to keep track of the number of articles scraped
 
-        # Create folder if it doesn't exist and save the html file. Works for both Windows and Linux
-        filename = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), "data", "html", "aljazeera", "")
-        create_folder(filename)  # Create folder if it doesn't exist
+        if not (('/news/av/' or '/sound/'or '/videos/' or '/live/') in url):
+            # Create folder if it doesn't exist and save the html file. Works for both Windows and Linux
+            filename = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), "data", "html", "bcc", "")
+            create_folder(filename)  # Create folder if it doesn't exist
 
-        # Save the html file
-        with open(os.path.join(filename, f"{count}.html"), "wb") as f:
-            f.write(respone.body)
-       
-        # Append tuple of (article_title, article_url, article_text) to list of cleaned articles only if title and content are not empty
-        content = clean_html(respone)
-        if title and content:
-            self.cleaned_articles.append((title, url, content))
+            # Save the html file
+            with open(os.path.join(filename, f"{count}.html"), "wb") as f:
+                f.write(respone.body)
+        
+            # Append tuple of (article_title, article_url, article_text) to list of cleaned articles only if title and content are not empty
+            content = clean_html(respone)
+            if title and content:
+                self.cleaned_articles.append((title, url, content))
 
     def closed(self, reason):
 
@@ -93,4 +92,4 @@ class AljazeeraSpider(scrapy.Spider):
         db = sqlite3.connect(os.path.join(filename, "db.sqlite3"))  # Establish connection to database
 
         df = pd.DataFrame(self.cleaned_articles, columns=['title', 'url', 'content'])  # Create dataframe of cleaned articles
-        df.to_sql('aljazeera', db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists
+        df.to_sql('bcc', db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists
