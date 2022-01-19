@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sqlite3
 import nltk
 import json
@@ -13,7 +14,7 @@ def get_all_articles():
     Get all articles from the database.
     """
 
-    db = sqlite3.connect(os.path.join(os.path.dirname(os.getcwd()), "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
     
     fox_news_df = pd.read_sql("SELECT * FROM " + DATABASE_TABLES[0], db)  # Get all articles from the table fox_news
     aljazeera_df = pd.read_sql("SELECT * FROM " + DATABASE_TABLES[1], db)  # Get all articles from the table aljazeera
@@ -37,8 +38,8 @@ def PoSTagger():
     article_dfs = get_all_articles()  # Get all articles from the database
 
     for df in article_dfs:
-        current_df_tags = []  # Each element is a json object containing a lost of tagged words
-        for index, row in df.iterrows():
+        current_df_tags = []  # Each element is a json object containing a list of tagged words
+        for _, row in df.iterrows():
             current_article_tags = []  # List to store the tagged words of the current article
             text = row['content']  # Get the article's text
             text_sentences = nltk.sent_tokenize(text)  # Split the text into sentences
@@ -48,15 +49,17 @@ def PoSTagger():
                 current_article_tags.extend(nltk.pos_tag(tokenized_sentence))  # Append tagged text to list as a tuple of (word, tag)
             current_df_tags.append(json.dumps(current_article_tags))  # Append list of tagged words to the current_df_list
         
-        assert len(current_df_tags) == len(df.index), "PoSTagger Error"  # Check that the lists of tagged words is equal to the number of articles
+        assert len(current_df_tags) == len(df.index), "PoSTagger Error"  # Check that the list's length of tagged words is equal to the number of articles
         df['PoSTags'] = current_df_tags  # Add the list of tagged words to the dataframe
         # print(df)  # Print the dataframe to see the progress
     
     # Save the new dataframe to the database
-    db = sqlite3.connect(os.path.join(os.path.dirname(os.getcwd()), "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
 
     for df, table in zip(article_dfs, DATABASE_TABLES):
         df.to_sql(table, db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists
 
 if __name__ == '__main__':
+
     PoSTagger()
+    print("PoS Tagging finished successfully!")
