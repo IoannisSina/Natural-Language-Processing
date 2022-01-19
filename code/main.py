@@ -104,13 +104,13 @@ def answer_query(query, inverted_index_dict):
     return df
 
 # ------------- Preprocessing and creating the inverted index. Inverted index is saved in the data folder as an xml file. -------------
-# inverted_index_build_start = time.time()
-# PosTagger.PoSTagger()
-# preprocessing.preprocessing()
-# preprocessing.lemmas_count()
-# inverted_index.inverted_to_xml()
-# inverted_index_build_end = time.time()
-# print("Inverted index build time: " + str(inverted_index_build_end - inverted_index_build_start) + " seconds")
+inverted_index_build_start = time.time()
+PosTagger.PoSTagger()
+preprocessing.preprocessing()
+preprocessing.lemmas_count()
+inverted_index.inverted_to_xml()
+inverted_index_build_end = time.time()
+print("Inverted index build time: " + str(inverted_index_build_end - inverted_index_build_start) + " seconds")
 # -------------------------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------- Create queries and prin timings --------------------------------------------------
