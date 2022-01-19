@@ -25,7 +25,7 @@ def get_all_articles():
 def PoSTagger():
 
     """
-    SYNTACTIC ANALYSIS.
+    SYNTACTIC ANALYSIS SYSTEM.
     Run spiders first in order for the database to be populated.
     For every article in the database, get the article's text and tag it with PoS tags.
     Save the tagged text in the database.
