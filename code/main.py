@@ -4,6 +4,7 @@ import pathlib
 import time
 import json
 import random
+import nltk
 import xml.etree.ElementTree as ET
 import pandas as pd
 from tabulate import tabulate
@@ -103,28 +104,74 @@ def answer_query(query, inverted_index_dict):
     df = df.sort_values(by=['total_weight'], ascending=False)
     return df
 
-# ------------- Preprocessing and creating the inverted index. Inverted index is saved in the data folder as an xml file. -------------
-inverted_index_build_start = time.time()
-PosTagger.PoSTagger()
-preprocessing.preprocessing()
-preprocessing.lemmas_count()
-inverted_index.inverted_to_xml()
-inverted_index_build_end = time.time()
-print("Inverted index build time: " + str(inverted_index_build_end - inverted_index_build_start) + " seconds")
-# -------------------------------------------------------------------------------------------------------------------------------------
+def create_inverted_index():
 
-# -------------------------------------------------- Create queries and prin timings --------------------------------------------------
-queries_list = [(1, 20), (2, 20), (3, 30), (4, 30)]  # Tuples of (query length, number of queries)
-inverted_index_dict = read_xml()  # Read the inverted index xml file
+    """
+    Run all scripts needed after crawling.
+    """
 
-for params in queries_list:
-    queries = create_queries(params)  # Create queries of the given length and number of queries
+    # ------------- Preprocessing and creating the inverted index. Inverted index is saved in the data folder as an xml file. -------------
+    inverted_index_build_start = time.time()
+    PosTagger.PoSTagger()
+    preprocessing.preprocessing()
+    preprocessing.lemmas_count()
+    inverted_index.inverted_to_xml()
+    inverted_index_build_end = time.time()
+    print("Inverted index build time: " + str(inverted_index_build_end - inverted_index_build_start) + " seconds")
 
-    start_time = time.time()
-    for query in queries:
-        answer = answer_query(query, inverted_index_dict)
-        # print("\n")
-        # print(tabulate(answer, showindex=False, headers=answer.columns))
-        # print("\n")
-    end_time = time.time()
-    print("Query length: " + str(params[0]) + " | Number of queries: " + str(params[1]) + " | Time: " + str((end_time - start_time) / params[1]) + " seconds")
+def preprocess_query(query):
+
+    """
+    Preprocess_query:
+    PoSTagging, remove stopwords and lemmatization
+    """
+
+    # Download needed NLTK packages for removing stop words
+    nltk.download('stopwords')
+    nltk.download('averaged_perceptron_tagger')
+    nltk.download('punkt')
+    nltk.download('wordnet')
+    nltk.download('omw-1.4')
+    lemmatizer = nltk.stem.WordNetLemmatizer()
+    stop_words = nltk.corpus.stopwords.words('english')
+
+    to_return = []
+    query = query.split(",")  # Split the query by comma
+    query = [lemma.lower() for lemma in query]  # Convert to lowercase
+
+    pos_tags = nltk.pos_tag(query)  # Get the part of speech tags
+    query = [item for item in pos_tags if item[0] not in stop_words and item[1] in preprocessing.OPEN_CLASS_CATEGORIES]  # Remove stop words and close categories
+
+    for item in query:
+        to_return.append(lemmatizer.lemmatize(item[0], pos=preprocessing.POS_TAGS[item[1][0:2]]))  # Lemmatize the words
+    return to_return
+
+if __name__ == "__main__":
+
+    # create_inverted_index()
+    inverted_index_dict = read_xml()  # Read the inverted index xml file
+
+    # -------------------------------------------------- Create queries and print timings --------------------------------------------------
+    user_input = input("Timings or custom input? (t/c): ")
+
+    if user_input == "c":
+        query = input("Enter query (english words separated by comma): ")
+        preprocessed_query = preprocess_query(query)  # Preprocess the query to remove stop words and lemmatize
+        answer = answer_query(preprocessed_query, inverted_index_dict)
+        print(tabulate(answer, showindex=False, headers=answer.columns))
+    elif user_input == "t":
+        queries_list = [(1, 20), (2, 20), (3, 30), (4, 30)]  # Tuples of (query length, number of queries)
+
+        for params in queries_list:
+            queries = create_queries(params)  # Create queries of the given length and number of queries
+
+            start_time = time.time()
+            for query in queries:
+                answer = answer_query(query, inverted_index_dict)
+                # print("\n")
+                # print(tabulate(answer, showindex=False, headers=answer.columns))
+                # print("\n")
+            end_time = time.time()
+            print("Query length: " + str(params[0]) + " | Number of queries: " + str(params[1]) + " | Time: " + str((end_time - start_time) / params[1]) + " seconds")
+    else:
+        print("Invalid input")
