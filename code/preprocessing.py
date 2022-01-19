@@ -8,7 +8,8 @@ import pandas as pd
 
 DATABASE_TABLES = ["foxnews", "aljazeera", "bcc"]
 OPEN_CLASS_CATEGORIES = ["JJ", "JJR", "JJS", "RB", "RBR", "RBS", "NN", "NNS", "NNP", "NNPS", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ", "FW"]
-pos_tags = {'NN': nltk.corpus.wordnet.NOUN, 'JJ': nltk.corpus.wordnet.ADJ, 'VB': nltk.corpus.wordnet.VERB, 'RB': nltk.corpus.wordnet.ADV, 'FW': nltk.corpus.wordnet.NOUN}
+POS_TAGS = {'NN': nltk.corpus.wordnet.NOUN, 'JJ': nltk.corpus.wordnet.ADJ, 'VB': nltk.corpus.wordnet.VERB, 'RB': nltk.corpus.wordnet.ADV, 'FW': nltk.corpus.wordnet.NOUN}
+PANCTUATION = string.punctuation
 
 def get_all_articles():
     
@@ -38,7 +39,6 @@ def preprocessing():
     # Download needed NLTK packages for removing stop words
     nltk.download('stopwords')
     stop_words = nltk.corpus.stopwords.words('english')
-    panctuation = string.punctuation
 
     article_dfs = get_all_articles()  # Get all articles from the database
 
@@ -48,7 +48,8 @@ def preprocessing():
         for _, row in df.iterrows():
             postags = json.loads(row['PoSTags'])  # Get the list of tagged words in list format
             cleaned_tags = [item for item in postags if item[0] not in stop_words and item[1] in OPEN_CLASS_CATEGORIES]  # Remove stop words and closed tag category words
-            panc_cleaned_tags = [item for item in cleaned_tags if not any(symbol in item[0] for symbol in panctuation)]  # Remove punctuation
+            panc_cleaned_tags = [item for item in cleaned_tags if not any(symbol in item[0] for symbol in PANCTUATION)]  # Remove punctuation
+            panc_cleaned_tags = [item for item in panc_cleaned_tags if item[0].encode("ascii", "ignore").decode() != ""]  # Remove unicode characters
             lower_cleaned_tags = [(item[0].lower(), item[1]) for item in panc_cleaned_tags]  # Convert all words to lower case
             current_df_cleaned_tags.append(json.dumps(lower_cleaned_tags))  # Convert list to json object and append it
         
@@ -89,12 +90,12 @@ def lemmas_count():
             for postag_word in current_article_cleaned_postags:
                 word = postag_word[0]
                 tag = postag_word[1]
-                lemmarized_word = lemmatizer.lemmatize(word, pos=pos_tags[tag[0:2]])  # Lemmatize the word
+                lemmatized_word = lemmatizer.lemmatize(word, pos=POS_TAGS[tag[0:2]])  # Lemmatize the word
 
-                if lemmarized_word in current_article_lemmas_count:
-                    current_article_lemmas_count[lemmarized_word] += 1
+                if lemmatized_word in current_article_lemmas_count:
+                    current_article_lemmas_count[lemmatized_word] += 1
                 else:
-                    current_article_lemmas_count[lemmarized_word] = 1
+                    current_article_lemmas_count[lemmatized_word] = 1
             current_df_lemmas_count.append(json.dumps(current_article_lemmas_count))  # Convert dictionary to json object and append it
 
         assert len(current_df_lemmas_count) == len(df.index), "Lemmatizer Error"  # Check that the list's length of lemmas count is equal to the number of articles
