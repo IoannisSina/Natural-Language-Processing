@@ -3,7 +3,7 @@ import pathlib
 import sqlite3
 import json
 import math
-import xml.etree.ElementTree as ET
+from xml.dom import minidom
 import pandas as pd
 
 DATABASE_TABLES = ["foxnews", "aljazeera", "bcc"]
@@ -99,9 +99,40 @@ def lemmas_tf_idf():
     df = pd.DataFrame(tf_idf_list, columns=['lemma', 'tf_idf'])  # Create dataframe of cleaned articles
     df.to_sql('lemmas', db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists
 
-    return dict_items  # Return list of tuples [(lemma, {doc_id: tf-idf, ...}), ...] to save it as xml file
+    return tf_idf  # Return list of tuples [(lemma, {doc_id: tf-idf, ...}), ...] to save it as xml file
+
+def inverted_to_xml():
+
+    """
+    Saves the inverted index to an xml file.
+    """
+
+    xml_path = os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "inverted_index.xml")
+    lemmas_tf_idf_dict = lemmas_tf_idf()  # Get the list of tuples [(lemma, {doc_id: tf-idf, ...}), ...] from the database
+
+    root = minidom.Document()  # Create file
+    xml = root.createElement('inverted_index')  # Create root element
+    root.appendChild(xml) 
+
+    for lemma in lemmas_tf_idf_dict:
+        lemma_child = root.createElement('lemma')  # Create child element
+        lemma_child.setAttribute('name', lemma)  # Set name attribute
+
+        # Add all documents containing the lemma
+        for doc in lemmas_tf_idf_dict[lemma]:
+            doc_child = root.createElement('document')  # create child element
+            doc_child.setAttribute('id', doc)  # Set id attribute (url)
+            doc_child.setAttribute('weight', str(lemmas_tf_idf_dict[lemma][doc]))  # Set weight (tf-idf) attribute
+            xml.appendChild(lemma_child)  # append child to parent
+            lemma_child.appendChild(doc_child)  # append child to parent
+        xml.appendChild(lemma_child)  # append child to parent
+
+    xml_str = root.toprettyxml(indent ="\t")
+    
+    with open(xml_path, "w", encoding="utf-8") as f:
+        f.write(xml_str)
 
 if __name__ == "__main__":
     # test_lemmas_count()  # Test lemmas_tf_idf()
-    lemmas_tf_idf()
+    inverted_to_xml()
     print("Inverted index saved to xml file and to the database!")
