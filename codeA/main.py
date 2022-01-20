@@ -8,6 +8,7 @@ import nltk
 import xml.etree.ElementTree as ET
 import pandas as pd
 from tabulate import tabulate
+import tkinter as tk
 import PosTagger
 import preprocessing
 import inverted_index
@@ -146,19 +147,51 @@ def preprocess_query(query):
         to_return.append(lemmatizer.lemmatize(item[0], pos=preprocessing.POS_TAGS[item[1][0:2]]))  # Lemmatize the words
     return to_return
 
+def user_input_query(xml):
+    
+        """
+        Create a window for the user to enter the query.
+        """
+    
+        window = tk.Tk()
+        window.title("User query")
+        window.geometry("300x300")
+    
+        query = tk.StringVar()
+        query_label = tk.Label(window, text="Enter query (words seperated by comma):")
+        query_label.pack()
+    
+        query_entry = tk.Entry(window, textvariable=query)
+        query_entry.pack()
+    
+        def submit_query():
+    
+            """
+            Submit the query.
+            """
+    
+            query = query_entry.get()
+            query = preprocess_query(query)
+            query = ",".join(query)
+            print(query)
+            answer = answer_query(preprocess_query(query), xml)
+            print(tabulate(answer, headers='keys', tablefmt='psql'))
+            window.destroy()
+    
+        submit_button = tk.Button(window, text="Submit", command=submit_query)
+        submit_button.pack()
+        window.mainloop()
+
 if __name__ == "__main__":
 
-    create_inverted_index()  # Create the inverted index and print the time it took to build it
+    # create_inverted_index()  # Create the inverted index and print the time it took to build it
     inverted_index_dict = read_xml()  # Read the inverted index xml file
 
     # -------------------------------------------------- Create queries and print timings --------------------------------------------------
     user_input = input("Timings or custom input? (t/c): ")
 
     if user_input == "c":
-        query = input("Enter query (english words separated by comma): ")
-        preprocessed_query = preprocess_query(query)  # Preprocess the query to remove stop words and lemmatize
-        answer = answer_query(preprocessed_query, inverted_index_dict)
-        print(tabulate(answer, showindex=False, headers=answer.columns))
+        user_input_query(inverted_index_dict)  # Create a window for the user to enter the query
     elif user_input == "t":
         queries_list = [(1, 20), (2, 20), (3, 30), (4, 30)]  # Tuples of (query length, number of queries)
 
