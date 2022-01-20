@@ -1,6 +1,6 @@
 # Natural-Language-Processing
 
-## Steps to run :runner:
+## Steps to run part A :runner:
 
 Clone repository and cd to the folder:
 ~~~
@@ -18,7 +18,7 @@ env\Scripts\activate  # Activate on Windows
 Install requirements and cd to code/crawlers:
 ~~~
 pip install -r requirements.txt
-cd code/crawlers
+cd codeA/crawlers
 ~~~
 
 Run spiders:
