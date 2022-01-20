@@ -180,7 +180,7 @@ def user_input_query(xml):
 
 if __name__ == "__main__":
 
-    # create_inverted_index()  # Create the inverted index and print the time it took to build it
+    create_inverted_index()  # Create the inverted index and print the time it took to build it
     inverted_index_dict = read_xml()  # Read the inverted index xml file
 
     # -------------------------------------------------- Create queries and print timings --------------------------------------------------
