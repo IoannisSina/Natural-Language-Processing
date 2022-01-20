@@ -13,7 +13,7 @@ import preprocessing
 import inverted_index
 
 """
-Before running this script, go to code/crawlers run the following commands:
+Before running this script, go to codeA/crawlers run the following commands:
 scrapy crawl foxnews
 scrapy crawl aljazeera
 scrapy crawl bcc
@@ -57,7 +57,7 @@ def read_xml():
     Read the inverted index xml file.
     """
 
-    xml_path = os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "inverted_index.xml")
+    xml_path = os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "inverted_index.xml")
     tree = ET.parse(xml_path)  # Create element tree object
     root = tree.getroot()  # Get root element
     inverted_index_dict = {}
@@ -148,7 +148,7 @@ def preprocess_query(query):
 
 if __name__ == "__main__":
 
-    # create_inverted_index()
+    create_inverted_index()  # Create the inverted index and print the time it took to build it
     inverted_index_dict = read_xml()  # Read the inverted index xml file
 
     # -------------------------------------------------- Create queries and print timings --------------------------------------------------

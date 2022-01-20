@@ -16,7 +16,7 @@ def get_all_articles():
     Get all articles from the database.
     """
 
-    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "db.sqlite3"))  # Establish connection to database
     
     fox_news_df = pd.read_sql("SELECT * FROM " + DATABASE_TABLES[0], db)  # Get all articles from the table fox_news
     aljazeera_df = pd.read_sql("SELECT * FROM " + DATABASE_TABLES[1], db)  # Get all articles from the table aljazeera
@@ -94,7 +94,7 @@ def lemmas_tf_idf():
     tf_idf_list = list(dict_items)
     tf_idf_list = [(lemma, json.dumps(tf_idf)) for lemma, tf_idf in tf_idf_list]
 
-    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "db.sqlite3"))  # Establish connection to database
 
     df = pd.DataFrame(tf_idf_list, columns=['lemma', 'tf_idf'])  # Create dataframe of cleaned articles
     df.to_sql('lemmas', db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists
@@ -107,7 +107,7 @@ def inverted_to_xml():
     Saves the inverted index to an xml file.
     """
 
-    xml_path = os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "inverted_index.xml")
+    xml_path = os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "inverted_index.xml")
     lemmas_tf_idf_dict = lemmas_tf_idf()  # Get the list of tuples [(lemma, {doc_id: tf-idf, ...}), ...] from the database
 
     root = minidom.Document()  # Create file

@@ -68,7 +68,7 @@ class AljazeeraSpider(scrapy.Spider):
         count = respone.meta.get('article_counter')  # Count to keep track of the number of articles scraped
 
         # Create folder if it doesn't exist and save the html file. Works for both Windows and Linux
-        filename = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), "data", "html", "aljazeera", "")
+        filename = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), "dataA", "html", "aljazeera", "")
         create_folder(filename)  # Create folder if it doesn't exist
 
         # Save the html file
@@ -87,7 +87,7 @@ class AljazeeraSpider(scrapy.Spider):
         """
 
         # Create folder if it doesn't exist and save the html file. Works for both Windows and Linux
-        filename = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), "data", "")
+        filename = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), "dataA", "")
         create_folder(filename)
 
         db = sqlite3.connect(os.path.join(filename, "db.sqlite3"))  # Establish connection to database

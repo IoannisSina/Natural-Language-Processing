@@ -14,7 +14,7 @@ def get_all_articles():
     Get all articles from the database.
     """
 
-    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "db.sqlite3"))  # Establish connection to database
     
     fox_news_df = pd.read_sql("SELECT * FROM " + DATABASE_TABLES[0], db)  # Get all articles from the table fox_news
     aljazeera_df = pd.read_sql("SELECT * FROM " + DATABASE_TABLES[1], db)  # Get all articles from the table aljazeera
@@ -54,7 +54,7 @@ def PoSTagger():
         # print(df)  # Print the dataframe to see the progress
     
     # Save the new dataframe to the database
-    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "db.sqlite3"))  # Establish connection to database
 
     for df, table in zip(article_dfs, DATABASE_TABLES):
         df.to_sql(table, db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists

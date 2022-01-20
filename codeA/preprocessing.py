@@ -19,7 +19,7 @@ def get_all_articles():
     Get all articles from the database.
     """
 
-    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "db.sqlite3"))  # Establish connection to database
     
     fox_news_df = pd.read_sql("SELECT * FROM " + DATABASE_TABLES[0], db)  # Get all articles from the table fox_news
     aljazeera_df = pd.read_sql("SELECT * FROM " + DATABASE_TABLES[1], db)  # Get all articles from the table aljazeera
@@ -57,7 +57,7 @@ def preprocessing():
         df['PoSTags_cleaned'] = current_df_cleaned_tags  # Add the list of cleaned tagged words to the dataframe
     
     # Save the new dataframe to the database
-    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "db.sqlite3"))  # Establish connection to database
 
     for df, table in zip(article_dfs, DATABASE_TABLES):
         df.to_sql(table, db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists
@@ -91,6 +91,8 @@ def lemmas_count():
                 word = postag_word[0]
                 tag = postag_word[1]
                 lemmatized_word = lemmatizer.lemmatize(word, pos=POS_TAGS[tag[0:2]])  # Lemmatize the word
+                if word == "needs":
+                    print("tag: " + tag)
 
                 if lemmatized_word in current_article_lemmas_count:
                     current_article_lemmas_count[lemmatized_word] += 1
@@ -102,7 +104,7 @@ def lemmas_count():
         df['lemmas_count'] = current_df_lemmas_count  # Add the list of dictionaries to the dataframe
     
     # Save the new dataframe to the database
-    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "data", "db.sqlite3"))  # Establish connection to database
+    db = sqlite3.connect(os.path.join(os.path.dirname(pathlib.Path(__file__).parent.resolve()) , "dataA", "db.sqlite3"))  # Establish connection to database
 
     for df, table in zip(cleaned_dfs, DATABASE_TABLES):
         df.to_sql(table, db, if_exists='replace', index=False)  # Insert dataframe to database. Replace table if it exists
