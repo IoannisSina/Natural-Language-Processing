@@ -5,6 +5,7 @@ import time
 import json
 import random
 import nltk
+from collections import defaultdict
 import xml.etree.ElementTree as ET
 import pandas as pd
 from tabulate import tabulate
@@ -79,15 +80,12 @@ def answer_query(query, inverted_index_dict):
     """
 
     query = [lemma.lower() for lemma in query]
-    answer = {}  # Dictionary of urls and their weights
+    answer = defaultdict(int)  # Dictionary of urls and their weights. Use defaultdict to avoid KeyError
     for lemma in query:
         if lemma in inverted_index_dict:
             for url in inverted_index_dict[lemma]:
-                if url in answer:
-                    answer[url] += inverted_index_dict[lemma][url]
-                else:
-                    answer[url] = inverted_index_dict[lemma][url]
-    
+                answer[url] += inverted_index_dict[lemma][url]  # Add the weight of the lemma to the answer
+
     # Return a dataframe of (url, weight of lemma ..., total weight)
     final_answer = []  # List of lists [url, weight of lemma ..., total weight]
     for url in answer:
@@ -171,11 +169,9 @@ def user_input_query(xml):
             """
     
             query = query_entry.get()
-            query = preprocess_query(query)
-            query = ",".join(query)
-            print(query)
             answer = answer_query(preprocess_query(query), xml)
-            print(tabulate(answer, headers='keys', tablefmt='psql'))
+            print("\n\n Query: " + query + "\n\n")
+            print(tabulate(answer, headers='keys', tablefmt='psql', showindex=False))
             window.destroy()
     
         submit_button = tk.Button(window, text="Submit", command=submit_query)
