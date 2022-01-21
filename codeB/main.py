@@ -92,14 +92,14 @@ def compute_distances(stemmed_vectors_train, stemmed_vectors_test):
     """
     COMPUTE DISTANCES SYSTEM.
     Compute the pairwise distances between the train and test sets.
-    Use metrics = ['cosine', 'euclidean', 'l2'] which support sparse matrices.
+    Use metrics = ['cosine', 'euclidean', 'l1', 'l2'] which support sparse matrices.
     For each vector in the test set, get the index of the closest vector in the train set.
     Get the predicted categories by the targer list of the train set.
     Plot confusion matrix and f1, precision and recall scores.
     """
 
     print("Computing distances...")
-    metrics = ['cosine', 'euclidean', 'l2']  # List of metrics to use. These metrics support sparse matrices
+    metrics = ['cosine', 'euclidean', 'l1', 'l2']  # List of metrics to use. These metrics support sparse matrices
 
     for metric in metrics:
         print("\n\nComputing distances with metric: {}\n\n".format(metric))

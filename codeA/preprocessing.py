@@ -91,8 +91,6 @@ def lemmas_count():
                 word = postag_word[0]
                 tag = postag_word[1]
                 lemmatized_word = lemmatizer.lemmatize(word, pos=POS_TAGS[tag[0:2]])  # Lemmatize the word
-                if word == "needs":
-                    print("tag: " + tag)
 
                 if lemmatized_word in current_article_lemmas_count:
                     current_article_lemmas_count[lemmatized_word] += 1
